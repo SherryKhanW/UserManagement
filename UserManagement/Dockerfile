@@ -3,13 +3,13 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 #creating new directory for the source code
 WORKDIR /src   
 # Copy only the project file to leverage Docker layer caching
-COPY ["UserManagement/UserManagement.csproj", "UserManagement/"]
+COPY ["UserManagement.csproj", "./"]
 #running the NuGet packages for .NET 
-RUN dotnet restore "UserManagement/UserManagement.csproj" 
+RUN dotnet restore "UserManagement.csproj" 
 #copying everything else in the folder
 COPY . .
 #running application now that dockerfile is setup
-RUN dotnet publish "UserManagement/UserManagement.csproj" -c Release -o /app/publish
+RUN dotnet publish "UserManagement.csproj" -c Release -o /app/publish
 
 # now only keeping the application and discarding all the extra packages etc as if we keep on running that then everytime this docker file is 
 # ran now only image of the application is made rathe than installing all the SDKs etc again
