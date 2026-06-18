@@ -2,6 +2,8 @@ using StackExchange.Redis;
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Data;
 using Elastic.Clients.Elasticsearch;
+using UserManagement.Models;
+using UserManagement.Repositories;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,6 +23,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString);
 });
 
+builder.Services.AddScoped<IRepository<User>, UserRepository>();
+builder.Services.AddScoped<IRepository<UserDevice>, UserDeviceRepository>();
+builder.Services.AddScoped<IRepository<UserSession>, UserSessionRepository>();
+builder.Services.AddScoped<IRepository<Country>, CountryRepository>();
+builder.Services.AddScoped<IRepository<UserCountry>, UserCountryRepository>();
+
 builder.Services.AddSingleton(_ =>
 {
     var url = builder.Configuration["Elasticsearch:Url"]!;
@@ -32,6 +40,18 @@ builder.Services.AddSingleton(_ =>
 
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    dbContext.Database.Migrate();
+}
+
+app.MapGet("/users", async (IRepository<User> repository) =>
+{
+    var users = await repository.GetAllAsync();
+    return Results.Ok(users);
+});
 
 app.MapGet("/", () => "Hello from Waada!");
 
