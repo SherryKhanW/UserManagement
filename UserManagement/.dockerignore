@@ -1,0 +1,11 @@
+bin/
+obj/
+**/bin/
+**/obj/
+
+UserManagement.Tests/
+**/*.Tests/
+
+.git/
+.idea/
+.vscode/

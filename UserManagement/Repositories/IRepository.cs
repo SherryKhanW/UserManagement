@@ -3,7 +3,7 @@ using UserManagement.Models;
 
 namespace UserManagement.Repositories;
 
-public interface IRepository<T> where T : class
+public interface IRepository<T> where T : BaseEntity
 {
     Task<List<T>> GetAllAsync();
     Task<T?> GetByIdAsync(int id);

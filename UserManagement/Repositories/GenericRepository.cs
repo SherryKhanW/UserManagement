@@ -4,10 +4,11 @@ using System.Text.Json;
 using StackExchange.Redis;
 using Elastic.Clients.Elasticsearch;
 using UserManagement.Logs;
+using UserManagement.Models;
 
 namespace UserManagement.Repositories;
 
-public class GenericRepository<T> : IRepository<T> where T : class
+public class GenericRepository<T> : IRepository<T> where T : BaseEntity
 {
     protected readonly AppDbContext _context;
     protected readonly DbSet<T> _dbSet;
@@ -33,18 +34,6 @@ public class GenericRepository<T> : IRepository<T> where T : class
     private static string GetByIdCacheKey(int id)
     {
         return $"{typeof(T).Name}:{id}";
-    }
-    
-    private static int? GetEntityId(T entity)
-    {
-        var idProperty = typeof(T).GetProperty("Id");
-
-        if (idProperty == null)
-        {
-            return null;
-        }
-
-        return idProperty.GetValue(entity) as int?;
     }
     
     private static string GetLogDataStreamName()
@@ -196,7 +185,7 @@ public class GenericRepository<T> : IRepository<T> where T : class
                 operation: "Create",
                 success: true,
                 message: $"{typeof(T).Name} created successfully.",
-                entityId: GetEntityId(entity));
+                entityId: entity.GetId());
 
             return entity;
         }
@@ -207,7 +196,7 @@ public class GenericRepository<T> : IRepository<T> where T : class
                 operation: "Create",
                 success: false,
                 message: $"Failed to create {typeof(T).Name}.",
-                entityId: GetEntityId(entity),
+                entityId: entity.GetId(),
                 errorMessage: ex.Message);
 
             throw;
@@ -221,13 +210,9 @@ public class GenericRepository<T> : IRepository<T> where T : class
             _dbSet.Update(entity);
             await _context.SaveChangesAsync();
 
-            var id = GetEntityId(entity);
-
-            if (id is not null)
-            {
-                await _cache.KeyDeleteAsync(GetByIdCacheKey(id.Value));
-            }
-
+            var id=entity.GetId();
+            
+            await _cache.KeyDeleteAsync(GetByIdCacheKey(id));
             await _cache.KeyDeleteAsync(GetAllCacheKey());
 
             await LogAsync(
@@ -246,7 +231,7 @@ public class GenericRepository<T> : IRepository<T> where T : class
                 operation: "Update",
                 success: false,
                 message: $"Failed to update {typeof(T).Name}.",
-                entityId: GetEntityId(entity),
+                entityId: entity.GetId(),
                 errorMessage: ex.Message);
 
             throw;
