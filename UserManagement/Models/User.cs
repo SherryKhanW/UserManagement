@@ -27,6 +27,10 @@ public class User : BaseEntity
     public UserRole Role { get; set; } = UserRole.User;
     
     public List<UserCountry> UserCountries { get; set; } = [];
+    
+    public string Salt { get; set; } = string.Empty;
+
+    public string PasswordHash { get; set; } = string.Empty;
 }
 
 public enum UserRole

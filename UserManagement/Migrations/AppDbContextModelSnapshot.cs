@@ -78,6 +78,10 @@ namespace UserManagement.Migrations
                     b.Property<int>("LoginCount")
                         .HasColumnType("integer");
 
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("text");
 
@@ -89,6 +93,10 @@ namespace UserManagement.Migrations
 
                     b.Property<int>("Role")
                         .HasColumnType("integer");
+
+                    b.Property<string>("Salt")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 

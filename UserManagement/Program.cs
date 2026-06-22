@@ -4,7 +4,10 @@ using UserManagement.Data;
 using Elastic.Clients.Elasticsearch;
 using UserManagement.Models;
 using UserManagement.Repositories;
-
+using ProtoBuf.Grpc.Server;
+using UserManagement.Grpc.Contracts;
+using UserManagement.Grpc.Services;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +41,15 @@ builder.Services.AddSingleton(_ =>
     return new ElasticsearchClient(settings);
 });
 
+builder.Services.AddCodeFirstGrpc();
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenLocalhost(5235, listenOptions =>
+    {
+        listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
+    });
+});
 
 var app = builder.Build();
 
@@ -91,5 +103,7 @@ app.MapGet("/elasticsearch-test", async (ElasticsearchClient client) =>
         clusterName = response.ClusterName?.ToString()
     });
 });
+
+app.MapGrpcService<UserGrpcService>();
 
 app.Run();

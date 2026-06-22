@@ -14,7 +14,11 @@
         <PrivateAssets>all</PrivateAssets>
       </PackageReference>
       <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
+      <PackageReference Include="protobuf-net" Version="3.2.56" />
+      <PackageReference Include="protobuf-net.Grpc.AspNetCore" Version="1.2.2" />
+      <PackageReference Include="protobuf-net.Reflection" Version="3.2.52" />
       <PackageReference Include="StackExchange.Redis" Version="3.0.0" />
+      <PackageReference Include="System.ServiceModel.Primitives" Version="10.0.652802" />
     </ItemGroup>
 
 </Project>
