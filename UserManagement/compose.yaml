@@ -1,17 +1,41 @@
 services:
   usermanagement:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ./UserManagement
+      dockerfile: UserManagement/Dockerfile
     container_name: usermanagement
     ports:
       - "8080:8080"
+      - "5235:5235"
     depends_on:
-      - postgres
+      - postgres-usermanagement
       - redis
       - elasticsearch
 
-  postgres:
+  apigateway:
+    build:
+      context: ./ApiGateway
+      dockerfile: Dockerfile
+    container_name: apigateway
+    ports:
+      - "5182:5182"
+    depends_on:
+      - usermanagement
+      - notificationservice
+      - redis
+
+  notificationservice:
+    build:
+      context: ./NotificationService
+      dockerfile: NotificationService/Dockerfile
+    container_name: notificationservice
+    ports:
+      - "5111:5111"
+    depends_on:
+      - postgres-notificationservice
+      - elasticsearch
+
+  postgres-usermanagement:
     image: postgres:latest
     container_name: postgres-usermanagement
     environment:
@@ -21,15 +45,25 @@ services:
     ports:
       - "5432:5432"
 
+  postgres-notificationservice:
+    image: postgres:latest
+    container_name: postgres-notificationservice
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: notificationservice
+    ports:
+      - "5433:5432"
+
   redis:
     image: redis:latest
-    container_name: redis-usermanagement
+    container_name: redis-waada
     ports:
       - "6379:6379"
 
   elasticsearch:
     image: elasticsearch:8.17.0
-    container_name: elasticsearch-usermanagement
+    container_name: elasticsearch-waada
     environment:
       discovery.type: single-node
       xpack.security.enabled: "false"
@@ -39,11 +73,10 @@ services:
 
   kibana:
     image: kibana:8.17.0
-    container_name: kibana-usermanagement
+    container_name: kibana-waada
     environment:
       ELASTICSEARCH_HOSTS: http://elasticsearch:9200
     ports:
       - "5601:5601"
     depends_on:
       - elasticsearch
-      

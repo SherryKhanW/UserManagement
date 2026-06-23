@@ -45,9 +45,14 @@ builder.Services.AddCodeFirstGrpc();
 
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenLocalhost(5235, listenOptions =>
+    options.ListenAnyIP(8080, listenOptions =>
     {
-        listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
+        listenOptions.Protocols = HttpProtocols.Http1;
+    });
+
+    options.ListenAnyIP(5235, listenOptions =>
+    {
+        listenOptions.Protocols = HttpProtocols.Http2;
     });
 });
 
