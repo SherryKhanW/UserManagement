@@ -2,18 +2,26 @@ using Microsoft.EntityFrameworkCore;
 using UserManagement.Grpc.Contracts;
 using UserManagement.Data;
 using UserManagement.Models;
-
+using UserManagement.Repositories;
 namespace UserManagement.Grpc.Services;
 
 public class UserGrpcService : IUserGrpcService
 {
     private readonly AppDbContext _dbContext;
     private readonly ILogger<UserGrpcService> _logger;
-
-    public UserGrpcService(AppDbContext dbContext, ILogger<UserGrpcService> logger)
+    private readonly IRepository<UserDevice> _userDeviceRepository;
+    private readonly IRepository<UserSession> _userSessionRepository;
+    
+    public UserGrpcService(
+        AppDbContext dbContext,
+        ILogger<UserGrpcService> logger,
+        IRepository<UserDevice> userDeviceRepository,
+        IRepository<UserSession> userSessionRepository)
     {
         _dbContext = dbContext;
         _logger = logger;
+        _userDeviceRepository = userDeviceRepository;
+        _userSessionRepository = userSessionRepository;
     }
     
     private static UserGrpcModel MapUserToGrpcModel(User user)
@@ -307,7 +315,7 @@ public class UserGrpcService : IUserGrpcService
                 IsActive = incomingDevice.IsActive
             };
 
-            await _dbContext.UserDevices.AddAsync(device);
+            await _userDeviceRepository.CreateAsync(device);
         }
         else
         {
@@ -317,7 +325,7 @@ public class UserGrpcService : IUserGrpcService
             device.IsActive = incomingDevice.IsActive;
         }
 
-        await _dbContext.SaveChangesAsync();
+        await _userDeviceRepository.UpdateAsync(device);
 
         device = await _dbContext.UserDevices
             .Include(d => d.User)
@@ -399,7 +407,7 @@ public class UserGrpcService : IUserGrpcService
                 IsActive = incomingSession.IsActive
             };
 
-            await _dbContext.UserSessions.AddAsync(session);
+            await _userSessionRepository.CreateAsync(session);
         }
         else
         {
@@ -411,7 +419,7 @@ public class UserGrpcService : IUserGrpcService
             session.ExpiresAt = DateTime.SpecifyKind(incomingSession.ExpiresAt, DateTimeKind.Utc);
         }
 
-        await _dbContext.SaveChangesAsync();
+        await _userSessionRepository.UpdateAsync(session);
 
         session = await _dbContext.UserSessions
             .Include(s => s.User)

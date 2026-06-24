@@ -38,9 +38,8 @@ public class GenericRepository<T> : IRepository<T> where T : BaseEntity
     
     private static string GetLogDataStreamName()
     {
-        return $"logs-{typeof(T).Name.ToLower()}-repository";
+        return $"logs-usermanagement-{typeof(T).Name.ToLower()}-repository";
     }
-    
     private async Task LogAsync(
         string methodName,
         string operation,
@@ -49,8 +48,9 @@ public class GenericRepository<T> : IRepository<T> where T : BaseEntity
         int? entityId = null,
         string? errorMessage = null)
     {
-        var log = new RepositoryLog
+        var response = await _elasticsearch.IndexAsync(new
         {
+            @timestamp = DateTime.UtcNow,
             RepositoryName = $"{typeof(T).Name}Repository",
             EntityName = typeof(T).Name,
             MethodName = methodName,
@@ -59,9 +59,9 @@ public class GenericRepository<T> : IRepository<T> where T : BaseEntity
             Message = message,
             EntityId = entityId,
             ErrorMessage = errorMessage
-        };
-
-        await _elasticsearch.IndexAsync(log, index: GetLogDataStreamName());
+        }, i => i
+            .Index(GetLogDataStreamName())
+            .OpType(Elastic.Clients.Elasticsearch.OpType.Create));
     }
     
     public async Task<List<T>> GetAllAsync()
